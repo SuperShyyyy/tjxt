@@ -33,4 +33,12 @@ public interface ILearningLessonService extends IService<LearningLesson> {
     LearningPlanPageVO queryMyPlans(PageQuery query);
 
     void createLearningPlan(@NotNull @Min(1) Long courseId, @NotNull @Range(min = 1, max = 50) Integer freq);
+
+    LearningLessonVO queryLessonByCourseId(Long courseId);
+
+    LearningLessonVO queryMyCurrentCourse();
+
+    void deleteCourseFromLesson(Long userId, Long courseId);
+
+    Integer queryCountByCourseId(Long courseId);
 }
