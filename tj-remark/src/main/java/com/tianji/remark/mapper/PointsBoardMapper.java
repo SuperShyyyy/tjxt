@@ -1,0 +1,16 @@
+package com.tianji.remark.mapper;
+
+import com.tianji.remark.domain.po.PointsBoard;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+/**
+ * <p>
+ * 学霸天梯榜 Mapper 接口
+ * </p>
+ *
+ * @author author
+ * @since 2026-02-25
+ */
+public interface PointsBoardMapper extends BaseMapper<PointsBoard> {
+
+}
