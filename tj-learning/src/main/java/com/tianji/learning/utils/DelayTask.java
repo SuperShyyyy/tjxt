@@ -1,4 +1,4 @@
-package com.tianji.learning.Utils;
+package com.tianji.learning.utils;
 
 import lombok.Data;
 

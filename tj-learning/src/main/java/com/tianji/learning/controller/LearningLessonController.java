@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -45,27 +46,36 @@ public class LearningLessonController {
     ) {
        return lessonService.isLessonValid(courseId);
     }
+
+    /**
+     * 创建学习计划
+     * @param dto
+     */
     @ApiOperation("创建学习计划")
-    @PostMapping("/plans")
-    public void createLearningPlans(@Valid @RequestBody LearningPlanDTO planDTO) {
-        lessonService.createLearningPlan(planDTO.getCourseId(),planDTO.getFreq());
+    @PostMapping("plans")
+    public void createLearningPlans(@Validated @RequestBody LearningPlanDTO dto){
+        lessonService.createLearningPlan(dto);
     }
-    @ApiOperation("查询我的学习计划")
+
+    @ApiOperation("分页查询我的学习计划")
     @GetMapping("/plans")
     public LearningPlanPageVO queryMyPlans(PageQuery query){
         return lessonService.queryMyPlans(query);
     }
+
 
     @ApiOperation("查询用户课表中指定课程状态")
     @GetMapping("/{courseId}")
     public LearningLessonVO queryLessonByCourseId(@PathVariable("courseId") Long courseId){
         return lessonService.queryLessonByCourseId(courseId);
     }
+
     @ApiOperation("查询正在学习的课程")
     @GetMapping("now")
     public LearningLessonVO queryMyCurrentCourse(){
         return lessonService.queryMyCurrentCourse();
     }
+
 
     @ApiOperation("手动删除当前课程")
     @DeleteMapping
@@ -73,6 +83,7 @@ public class LearningLessonController {
         Long userId = UserContext.getUser();
         lessonService.deleteCourseFromLesson(userId,courseId);
     }
+
 
     @ApiOperation("统计课程报名人数")
     @GetMapping("/{courseId}/count")
