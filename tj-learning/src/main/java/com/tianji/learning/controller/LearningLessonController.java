@@ -44,7 +44,9 @@ public class LearningLessonController {
     public Long isLessonValid(
             @ApiParam(value = "课程 id",example = "1") @PathVariable("courseId") Long courseId
     ) {
-       return lessonService.isLessonValid(courseId);
+        //todo
+      // return lessonService.isLessonValid(courseId);
+        return null ;
     }
 
     /**
