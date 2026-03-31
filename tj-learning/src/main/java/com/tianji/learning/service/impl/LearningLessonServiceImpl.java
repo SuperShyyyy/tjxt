@@ -14,6 +14,7 @@ import com.tianji.common.domain.query.PageQuery;
 import com.tianji.common.exceptions.BadRequestException;
 import com.tianji.common.exceptions.BizIllegalException;
 import com.tianji.common.utils.*;
+import com.tianji.learning.domain.dto.LearningPlanDTO;
 import com.tianji.learning.domain.po.InteractionQuestion;
 import com.tianji.learning.domain.po.LearningLesson;
 import com.tianji.learning.domain.po.LearningRecord;
@@ -50,8 +51,8 @@ import java.util.stream.Collectors;
 public class LearningLessonServiceImpl extends ServiceImpl<LearningLessonMapper, LearningLesson> implements ILearningLessonService {
     private final CourseClient courseClient;
     private final CatalogueClient catalogueClient;
-    private LearningRecordMapper recordMapper;
-
+    private final LearningRecordServiceImpl recordService;
+    private final LearningRecordMapper recordMapper;
 
     @Override
     @Transactional
@@ -63,23 +64,6 @@ public class LearningLessonServiceImpl extends ServiceImpl<LearningLessonMapper,
             log.error("课程信息不存在,无法添加到课表");
             return;
         }
-        /*
-        //2.循环遍历 处理learningLesson数据
-        List<LearningLesson> list = new ArrayList<>(cInfoList.size());
-        for(CourseSimpleInfoDTO cInfo : cInfoList) {
-            LearningLesson lesson = new LearningLesson();
-            //2.1获取过期时间
-            Integer validDuration = cInfo.getValidDuration();
-            if(validDuration != null && validDuration > 0 ){
-                LocalDateTime now = LocalDateTime.now();
-                lesson.setCreateTime(now);
-                lesson.setExpireTime(now.plusMonths(validDuration));
-            }
-            //2.2填充userid和courseId
-            lesson.setUserId(userId);
-            lesson.setCourseId(cInfo.getId());
-            list.add(lesson);
-        }*/
         List<LearningLesson> list = cInfoList.stream().map(cInfo->{
             LearningLesson lesson = new LearningLesson();
             Integer expiredTime =  cInfo.getValidDuration();
@@ -122,27 +106,32 @@ public class LearningLessonServiceImpl extends ServiceImpl<LearningLessonMapper,
         return PageDTO.of(page,list);
 
     }
-    //todo
-    @Override
-   public  LearningLesson queryByUserIdAndCourseId(Long userId,Long courseId){
-        return getOne(buildUserIdAndCourseIdWrapper(userId,courseId));
-    }
-    @Override
-    public void createLearningPlan(@NotNull @Min(1) Long courseId, @NotNull @Range(min = 1, max = 50) Integer freq){
-       //获取登录用户
-        Long userId = UserContext.getUser();
-        //1.查询课表指定课程有关数据
-        LearningLesson lesson =  queryByUserIdAndCourseId(userId,courseId);
-        AssertUtils.isNotNull(lesson,"课程信息不存在");
-        //2.修改数据
-        LearningLesson l = new LearningLesson();
-        l.setId(lesson.getId());
-        l.setWeekFreq(freq);
-        if (lesson.getPlanStatus()==PlanStatus.NO_PLAN){
-            l.setPlanStatus(PlanStatus.PLAN_RUNNING);
-        }
-        updateById(l);
 
+
+
+
+    @Override
+    public void createLearningPlan(LearningPlanDTO dto) {
+    // 获取当前登录用户id
+        Long userId = UserContext.getUser();
+    // 查询课表learning_Lesson 条件user_id course_id
+        LearningLesson lesson = this.lambdaQuery()
+                .eq(LearningLesson::getUserId, userId)
+                .eq(LearningLesson::getCourseId, dto.getCourseId())
+                .one();
+        if (lesson == null) {
+            throw new BizIllegalException("该课程没有加入课表");
+        }
+    // 修改课表
+    // lesson.setWeekFreq(dto.getFreq());
+    // lesson.setPlanStatus(PlanStatus.PLAN_RUNNING);
+    // this.updateById(lesson);
+    // 链式
+        this.lambdaUpdate()
+                .set(LearningLesson::getWeekFreq, dto.getFreq())
+                .set(LearningLesson::getPlanStatus, PlanStatus.PLAN_RUNNING)
+                .eq(LearningLesson::getId, lesson.getId())
+                .update();
     }
 
     @Override
